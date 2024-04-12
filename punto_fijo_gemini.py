@@ -1,4 +1,6 @@
 import numpy as np
+
+#code made by Gemini
 def f(x):
   return 2*x**3 - 11.7*x**2 + 17.7*x - 5
 

@@ -1,3 +1,5 @@
+#code made by ChatGPT 3.5
+
 # Definición de la función f(x)
 def f(x):
     return 2*x**3 - 11.7*x**2 + 17.7*x - 5

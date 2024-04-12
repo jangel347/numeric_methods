@@ -1,3 +1,4 @@
+#code foound on the web
 import matplotlib.pyplot as plt
 import math
 plt.style.use('classic')
