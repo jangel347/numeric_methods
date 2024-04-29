@@ -3,13 +3,12 @@ import numpy as np
 import time
 
 
-number_columns = 0
-while number_columns < 2:
-    number_columns = int(input('Escriba el número de incógnitas de las ecuaciones: '))
-    if number_columns < 2:
-        print("No válido, intente de nuevo")
+array = np.array([
+    [10,2],
+    [1,20]
+    ])
+number_columns = array.shape[1]
 number_equation = number_columns
-number_columns +=1
 array = np.zeros((number_equation, number_columns+1))
 array_comparation = np.zeros((number_equation, number_columns-1))
 _RES_COLUMN = "res"
@@ -17,23 +16,7 @@ _TR_COLUMN = "transformed" #columna que indica si el pivote ya fue usado
 matriz_df = pd.DataFrame(array,columns=[f"x{i+1}" for i in range(number_columns+1)],index=[f"ec{i+1}" for i in range(number_equation)])
 matriz_comparation = pd.DataFrame(array_comparation,columns=[f"x{i+1}" for i in range(number_columns-1)],index=[f"ec{i+1}" for i in range(number_equation)])
 matriz_df.columns = matriz_df.columns[:-2].tolist() + [_RES_COLUMN] + [_TR_COLUMN]
-if number_columns > 2:
-    matriz_no_valid = [
-        matriz_comparation.iloc[1:,:number_columns-2].copy(),#esquina inferior izquierda
-        matriz_comparation.iloc[1:,1:number_columns-2].copy(),#esquina inferior derecha
-        matriz_comparation.iloc[1:,1:number_columns-2].copy(),#esquina inferior derecha
-        matriz_comparation.iloc[1:,1:number_columns-2].copy()#esquina inferior derecha
-        ]
 
-print("matriz_df")
-print(matriz_df.iloc[:,:-1])
-zeros_pivot = 0
-for row_index in range(number_equation):
-    for column_index in range(number_columns):
-        value = float(input(f'Ingrese el valor de [{row_index},{column_index}]: '))
-        matriz_df.iloc[row_index, column_index] = value
-    matriz_comparation.iloc[row_index,row_index] = 1
-    if (matriz_df.iloc[row_index,row_index] == 0): zeros_pivot += 1
 
 def transform_pivot_to_1(matriz, pivot):
     print(f'F{pivot} => F{pivot} / {matriz.iloc[pivot,pivot]} ---------------')
@@ -83,7 +66,7 @@ def prepare_matrix(matriz, pivot):
     return matriz, False
             
 def validate_matrix(matriz):
-    if (zeros_pivot > number_equation-1):
+    if (zeros_pivot < number_equation-1):
         print('LA MATRIZ NO TIENE SOLUCIÓN 1')
         return matriz, False
     for i in matriz.columns:
@@ -96,9 +79,9 @@ def validate_matrix(matriz):
 
 print('VALIDATE')
 isValid = False
-print(zeros_pivot," <= ",number_equation-1)
-matriz_df,isValid = validate_matrix(matriz_df)
-
+# print(zeros_pivot," <= ",number_equation-1)
+# matriz_df,isValid = validate_matrix(matriz_df)
+isValid = False
 print(matriz_df.iloc[:,:-1])
 if isValid:
     count_column = 0
