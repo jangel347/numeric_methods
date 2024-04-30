@@ -41,15 +41,15 @@ for row_index in range(number_equation):
     matriz_comparation.iloc[row_index,row_index] = 1
     if (matriz_df.iloc[row_index,row_index] == 0): zeros_pivot += 1
 
-def transform_pivot_to_1(matriz, pivot, operations):
+def transform_pivot_to_1(matriz, pivot, operations, rows_changes):
     print(f'F{pivot} => F{pivot} / {matriz.iloc[pivot,pivot]} ---------------')
     if (matriz.iloc[pivot,pivot] == 0): 
-        matriz, isValid = prepare_matrix(matriz, pivot)
-        return (matriz,isValid)
+        matriz, isValid, rows_changes = prepare_matrix(matriz, pivot, rows_changes)
+        return (matriz,isValid,operations, rows_changes)
     operations.append(1/matriz.iloc[pivot,pivot])
     matriz.iloc[pivot] = matriz.iloc[pivot].astype(float) / matriz.iloc[pivot,pivot].astype(float)
     matriz.iloc[pivot,-1] = 1
-    return (matriz,True, operations)
+    return (matriz,True, operations,rows_changes)
 
 def transform_to_0(matriz, pivot, row_index):
     if pivot == row_index: return (matriz,True)
@@ -58,7 +58,7 @@ def transform_to_0(matriz, pivot, row_index):
     matriz.iloc[row_index,-1] = 0
     return (matriz,True)
 
-def gauss_jordan(matriz, pivot, operations_det):
+def gauss_jordan(matriz, pivot, operations_det, rows_changes):
     # print(f'pivot => {pivot}--{range(matriz.shape[0]-1)}')
     pivote_transform = False
     isValid = True
@@ -66,16 +66,16 @@ def gauss_jordan(matriz, pivot, operations_det):
         # print(f'row_count => {row_count}')
         if not pivote_transform:
             if (matriz.iloc[row_count,pivot] != 1): 
-                (matriz,isValid, operations_det) = transform_pivot_to_1(matriz,pivot, operations_det)
+                (matriz,isValid, operations_det, rows_changes) = transform_pivot_to_1(matriz,pivot, operations_det, rows_changes)
                 if not isValid:
                     return (matriz,False, operations_det)
             pivote_transform = True
         if (matriz.iloc[row_count,pivot] != 0): 
             (matriz,isValid) = transform_to_0(matriz,pivot,row_count)
         print(matriz.iloc[:,:-1])
-    return (matriz,True, operations_det)
+    return (matriz,True, operations_det, rows_changes)
 
-def prepare_matrix(matriz, pivot):
+def prepare_matrix(matriz, pivot, rows_changes):
     print('PREPARE')
     row = matriz.iloc[pivot]
     for i in range(matriz.shape[0]):
@@ -85,9 +85,10 @@ def prepare_matrix(matriz, pivot):
             matriz.iloc[i] = matriz.iloc[0]
             matriz.iloc[0] = row
             print(matriz.iloc[:,:-1])
-            return matriz, True
+            rows_changes+=1
+            return matriz, True, rows_changes
     print(matriz_df.iloc[:,:-1])
-    return matriz, False
+    return matriz, False, rows_changes
             
 def validate_matrix(matriz):
     if (zeros_pivot > number_equation-1):
@@ -101,7 +102,7 @@ def validate_matrix(matriz):
                 return matriz, False
     return matriz, True
 
-def determinantes(matriz, operations):
+def determinantes(matriz, operations, rows_changes):
     res_op = 1
     res_diag = 1
     for i in range(len(operations)):
@@ -111,7 +112,7 @@ def determinantes(matriz, operations):
         if i == 0:
             res_diag = matriz.iloc[i,i]
         res_diag = res_diag * matriz.iloc[i,i]
-    res = res_diag * (1/res_op)
+    res = res_diag * (1/res_op) * ((-1)**rows_changes)
     print(f"DETERMINANTE => {res}")
 
 print('VALIDATE')
@@ -124,8 +125,9 @@ if isValid:
     count_column = 0
     iterations_count = 0
     operations_det = []
+    changes = 0
     while not matriz_comparation.equals(matriz_df.iloc[:, :-2].astype(float)):
-        (matriz_df,isValid, operations_det) = gauss_jordan(matriz_df, count_column, operations_det)
+        (matriz_df,isValid, operations_det, changes) = gauss_jordan(matriz_df, count_column, operations_det, changes)
         if not isValid:
             print('La matriz no tiene solución')
             break
@@ -141,6 +143,6 @@ if isValid:
     if isValid:
         print("SOLUCIONADO:")
         print(matriz_df.iloc[:,:-1])
-        determinantes(matriz_df,operations_det)
+        determinantes(matriz_df,operations_det, changes)
     else:
         print("Sucedió un error")
