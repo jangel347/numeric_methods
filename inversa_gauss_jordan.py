@@ -4,19 +4,30 @@ import time
 
 
 array = np.array([
-    [10,2],
-    [1,20]
+    [5,9,6],
+    [-4,-5,6],
+    [5,7,-15]
     ])
 number_columns = array.shape[1]
 number_equation = number_columns
-array = np.zeros((number_equation, number_columns+1))
-array_comparation = np.zeros((number_equation, number_columns-1))
-_RES_COLUMN = "res"
+columns = (number_columns*2)+1
+array_concat = np.zeros((number_equation, number_columns+1))
+array_comparation = np.zeros((number_equation, number_columns))
+array = np.concatenate((array, array_concat), axis=1)
 _TR_COLUMN = "transformed" #columna que indica si el pivote ya fue usado
-matriz_df = pd.DataFrame(array,columns=[f"x{i+1}" for i in range(number_columns+1)],index=[f"ec{i+1}" for i in range(number_equation)])
-matriz_comparation = pd.DataFrame(array_comparation,columns=[f"x{i+1}" for i in range(number_columns-1)],index=[f"ec{i+1}" for i in range(number_equation)])
-matriz_df.columns = matriz_df.columns[:-2].tolist() + [_RES_COLUMN] + [_TR_COLUMN]
+matriz_df = pd.DataFrame(array,columns=[f"x{i+1}" for i in range(columns)],index=[f"ec{i+1}" for i in range(number_equation)])
+matriz_comparation = pd.DataFrame(array_comparation,columns=[f"x{i+1}" for i in range(number_columns)],index=[f"ec{i+1}" for i in range(number_equation)])
+matriz_df.columns = matriz_df.columns[:-1].tolist() + [_TR_COLUMN]
 
+for i in range(matriz_comparation.shape[0]):
+    matriz_comparation.iloc[i,i] = 1
+    i_2 = i+number_equation
+    matriz_df.iloc[i,i_2] = 1
+
+print("matriz_comparation")
+print(matriz_comparation)
+print("matriz_df")
+print(matriz_df)
 
 def transform_pivot_to_1(matriz, pivot):
     print(f'F{pivot} => F{pivot} / {matriz.iloc[pivot,pivot]} ---------------')
@@ -66,11 +77,8 @@ def prepare_matrix(matriz, pivot):
     return matriz, False
             
 def validate_matrix(matriz):
-    if (zeros_pivot < number_equation-1):
-        print('LA MATRIZ NO TIENE SOLUCIÓN 1')
-        return matriz, False
     for i in matriz.columns:
-        if i != _RES_COLUMN and i != _TR_COLUMN:
+        if i != _TR_COLUMN:
             ceros = matriz[matriz[i] == 0]
             if ceros.shape[0] == matriz.shape[0]:
                 print('LA MATRIZ NO TIENE SOLUCIÓN 2')
@@ -79,21 +87,19 @@ def validate_matrix(matriz):
 
 print('VALIDATE')
 isValid = False
-# print(zeros_pivot," <= ",number_equation-1)
-# matriz_df,isValid = validate_matrix(matriz_df)
-isValid = False
+matriz_df,isValid = validate_matrix(matriz_df)
 print(matriz_df.iloc[:,:-1])
 if isValid:
     count_column = 0
     iterations_count = 0
-    while not matriz_comparation.equals(matriz_df.iloc[:, :-2]):
+    while not matriz_comparation.equals(matriz_df.iloc[:, :-(1+matriz_comparation.shape[0])]):
         (matriz_df,isValid) = gauss_jordan(matriz_df, count_column)
         if not isValid:
             print('La matriz no tiene solución')
             break
         count_column += 1
         iterations_count += 1
-        if count_column == matriz_df.columns.size-2: count_column = 0
+        if count_column == matriz_df.columns.size-(1+matriz_comparation.shape[0]): count_column = 0
         # print("iterations_count => ",iterations_count)
         if iterations_count > (number_columns**2)+10: 
             print("Límite de iteraciones, no se pudo solucionar la matriz")
@@ -101,7 +107,7 @@ if isValid:
             break
         time.sleep(0.5)
     if isValid:
-        print("SOLUCIONADO:")
-        print(matriz_df.iloc[:,:-1])
+        print("SOLUCIONADO INVERSA:")
+        print(matriz_df.iloc[:,matriz_comparation.shape[0]:-1])
     else:
         print("Sucedió un error")
